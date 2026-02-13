@@ -3,57 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🖐️ 拖曳摸牌：五路財神</title>
+    <title>🖐️ 五路財神 (最終版)</title>
     <style>
         :root {
-            --card-w: 56px;
-            --card-h: 84px;
+            --card-w: 58px;
+            --card-h: 88px;
             --slot-border: rgba(255, 215, 0, 0.6);
+            --bg-dark: #1a472a;
+            --bg-light: #2c6e43;
         }
 
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #1a472a; /* 深綠色 */
+            background-color: var(--bg-dark);
             margin: 0;
             padding: 0;
-            overflow: hidden; /* 禁止滾動 */
+            overflow: hidden;
             color: white;
-            touch-action: none; /* 禁止手機預設手勢 */
+            touch-action: none;
             height: 100vh;
             width: 100vw;
             user-select: none;
             -webkit-user-select: none;
+            display: flex;
+            flex-direction: column; /* 垂直排列，解決留白問題 */
         }
 
-        /* 標題與資訊 */
+        /* 1. 標題區 (固定高度) */
         header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
+            height: 50px;
             background: rgba(0,0,0,0.3);
             text-align: center;
-            z-index: 10;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            flex-shrink: 0;
+            z-index: 200;
         }
-        h1 { margin: 0; font-size: 1.2rem; color: #f1c40f; }
-        p { margin: 2px 0 0; font-size: 0.8rem; color: #ccc; }
+        h1 { margin: 0; font-size: 1.1rem; color: #f1c40f; }
+        p { margin: 2px 0 0; font-size: 0.75rem; color: #ccc; }
 
-        /* 五個插槽區 (視覺背景) */
-        .slots-container {
-            position: absolute;
-            top: 70px;
-            left: 0;
-            width: 100%;
-            height: 120px;
+        /* 2. 插槽區 (固定高度，緊接標題) */
+        .slots-wrapper {
+            height: 110px;
+            background: var(--bg-dark);
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 8px;
-            z-index: 5;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+            padding-top: 10px;
         }
 
         .slot {
@@ -65,7 +66,8 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            background: rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.2);
+            transition: border-color 0.3s;
         }
 
         .slot-label {
@@ -76,25 +78,27 @@
             font-weight: bold;
         }
 
-        /* 桌面區域 (視覺背景) */
+        /* 3. 桌面區 (自動填滿剩餘空間) */
         .table-zone {
-            position: absolute;
-            bottom: 0;
-            left: 0;
+            flex-grow: 1; /* 關鍵：填滿剩下高度 */
             width: 100%;
-            height: 55%; /* 下半部是桌面 */
-            background-image: radial-gradient(#2c6e43, #153821);
-            border-top: 2px solid #f1c40f;
+            background-image: radial-gradient(var(--bg-light), var(--bg-dark));
+            border-top: 3px solid #f1c40f; /* 黃線 */
+            position: relative;
             z-index: 1;
+            overflow: hidden;
         }
 
         .guide-text {
             position: absolute;
-            top: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             width: 100%;
             text-align: center;
-            color: rgba(255,255,255,0.3);
-            font-size: 0.9rem;
+            color: rgba(255,255,255,0.2);
+            font-size: 1.2rem;
+            font-weight: bold;
             pointer-events: none;
         }
 
@@ -102,47 +106,73 @@
         .card {
             width: var(--card-w);
             height: var(--card-h);
-            position: absolute; /* 絕對定位，可以在全螢幕跑 */
+            position: absolute;
             border-radius: 6px;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.4);
             cursor: grab;
-            z-index: 100; /* 預設層級 */
+            z-index: 100;
             
-            /* 牌背樣式 */
+            /* 牌背樣式 (菱格紋) */
             background-color: #b71c1c;
-            background-image: repeating-linear-gradient(
-                45deg, transparent, transparent 5px, rgba(255,255,255,0.2) 5px, rgba(255,255,255,0.2) 10px
-            );
+            background-image: 
+                linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent),
+                linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+            background-size: 10px 10px;
             border: 2px solid #fff;
             
-            /* 讓卡牌內容預設隱藏 */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-weight: bold;
-            font-size: 0; /* 隱藏文字 */
+            font-size: 0;
             color: transparent;
+            touch-action: none;
         }
 
-        .card:active {
-            cursor: grabbing;
-            transform: scale(1.1); /* 按住時稍微放大 */
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        /* 點擊翻牌時的動畫 */
+        .card.flipping {
+            animation: flipEffect 0.6s forwards;
         }
 
-        /* 翻牌後的樣式 */
+        @keyframes flipEffect {
+            0% { transform: rotateY(0deg) scale(1); }
+            50% { transform: rotateY(90deg) scale(1.1); background-color: #eee; }
+            100% { transform: rotateY(0deg) scale(1); background-color: white; }
+        }
+
+        /* 翻開後的樣式 */
         .card.revealed {
             background: white;
-            font-size: 1.5rem; /* 顯示文字 */
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
+            font-size: 1.5rem;
+            border: 2px solid #333;
         }
         .card.revealed.red { color: #c0392b; }
         .card.revealed.black { color: #2c3e50; }
 
-        .suit-small { font-size: 0.8rem; position: absolute; top: 2px; left: 2px; }
-        .val-large { font-size: 1.8rem; }
+        .suit-small { font-size: 0.9rem; position: absolute; top: 2px; left: 4px; }
+        .val-large { font-size: 2rem; font-weight: bold; }
+
+        /* 按住拖曳時 */
+        .card.dragging {
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+            z-index: 1000 !important;
+            transform: scale(1.15) !important;
+        }
+        
+        /* 鎖定狀態 (等待翻牌) */
+        .card.locked {
+            cursor: pointer; /* 提示可以點 */
+        }
+        /* 已翻開 */
+        .card.done {
+            cursor: default;
+        }
+
+        /* 提示翻牌的特效 */
+        .card.locked:hover {
+            filter: brightness(1.2);
+            border-color: #f1c40f;
+        }
 
         /* 控制按鈕區 */
         .controls {
@@ -151,29 +181,42 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 15px;
-            z-index: 200;
+            gap: 20px;
+            z-index: 300; /* 確保在最上層 */
+            pointer-events: none; /* 讓點擊穿透空白處，只讓按鈕可點 */
         }
 
         .btn {
-            padding: 12px 30px;
+            pointer-events: auto; /* 恢復按鈕可點 */
+            padding: 12px 35px;
             border: none;
             border-radius: 50px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: bold;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-            transition: all 0.1s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: all 0.2s;
         }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
         
-        .btn-confirm { background: #f1c40f; color: #8e44ad; opacity: 0.5; pointer-events: none; }
-        .btn-confirm.active { opacity: 1; pointer-events: auto; animation: pulse 1.5s infinite; }
-        .btn-reset { background: #95a5a6; color: white; }
+        .btn-confirm { 
+            background: linear-gradient(to bottom, #f1c40f, #f39c12); 
+            color: #8e44ad; 
+            border: 2px solid #fff;
+            opacity: 0.6;
+        }
+        .btn-confirm.ready { 
+            opacity: 1; 
+            animation: pulse 1.5s infinite; 
+        }
+        .btn-reset { 
+            background: #7f8c8d; 
+            color: white; 
+            border: 2px solid #bdc3c7;
+        }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(241, 196, 15, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 20px rgba(241, 196, 15, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(241, 196, 15, 0); }
         }
 
         /* 結果遮罩 */
@@ -181,27 +224,46 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9);
-            z-index: 1000;
+            z-index: 2000;
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
+            animation: fadeIn 0.5s;
         }
-        .final-msg { color: #f1c40f; font-size: 1.5rem; margin-bottom: 10px; }
-        .final-amount { font-size: 3.5rem; color: #fff; font-weight: bold; margin: 20px 0; text-shadow: 0 0 20px #e74c3c; }
-        .win-btn { padding: 15px 40px; font-size: 1.2rem; background: #e74c3c; color: white; border: none; border-radius: 50px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .final-msg { color: #f1c40f; font-size: 1.5rem; margin-bottom: 5px; }
+        .final-amount { font-size: 4rem; color: #fff; font-weight: bold; margin: 10px 0; text-shadow: 0 0 30px #e74c3c; }
+        .win-btn { padding: 15px 50px; font-size: 1.3rem; background: #e74c3c; color: white; border: none; border-radius: 50px; margin-top: 20px; }
+
+        /* 狀態提示字 */
+        #status-bar {
+            position: absolute;
+            bottom: 85px;
+            width: 100%;
+            text-align: center;
+            color: #f1c40f;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
 
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🖐️ 五路財神 (拖曳版)</h1>
-        <p>請將喜歡的牌拖進上方格子</p>
+        <h1>🖐️ 五路財神</h1>
+        <p>10, J, Q, K = 0 | A = 1</p>
     </header>
 
-    <div class="slots-container">
+    <div class="slots-wrapper">
         <div class="slot" id="slot-0"><div class="slot-label">萬</div></div>
         <div class="slot" id="slot-1"><div class="slot-label">千</div></div>
         <div class="slot" id="slot-2"><div class="slot-label">百</div></div>
@@ -209,13 +271,15 @@
         <div class="slot" id="slot-4"><div class="slot-label">個</div></div>
     </div>
 
-    <div class="table-zone">
-        <div class="guide-text">由此區按住牌，拖曳至上方</div>
+    <div class="table-zone" id="table-bg">
+        <div class="guide-text">洗牌區<br><span style="font-size:0.8rem; font-weight:normal;">(手指滑動桌面可撥牌)</span></div>
     </div>
+
+    <div id="status-bar">👇 請點擊上方卡牌翻開 👇</div>
 
     <div class="controls">
         <button class="btn btn-reset" onclick="initGame()">重洗</button>
-        <button class="btn btn-confirm" id="confirm-btn" onclick="revealResult()">確認開牌</button>
+        <button class="btn btn-confirm" id="confirm-btn" onclick="startRevealPhase()" disabled>買定離手</button>
     </div>
 
     <div id="result-overlay">
@@ -224,70 +288,84 @@
         <button class="btn win-btn" onclick="initGame()">再來一把</button>
     </div>
 
-    <a href="lobby.html" style="position: absolute; top: 15px; left: 15px; color: rgba(255,255,255,0.5); text-decoration: none; z-index: 200;">&lt; 回大廳</a>
+    <a href="lobby.html" style="position: absolute; top: 15px; left: 15px; color: rgba(255,255,255,0.5); text-decoration: none; z-index: 300; font-size: 0.9rem;">&lt; 回大廳</a>
 
     <script>
-        // 設定
+        // --- 遊戲設定 ---
         const suits = ['♠', '♥', '♦', '♣'];
         const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
         
-        let cards = []; // 存放所有 card 元素
-        let slotState = [null, null, null, null, null]; // 記錄哪個格子有哪張牌 (存 card 元素)
+        let cards = [];
+        let slotState = [null, null, null, null, null]; 
+        let isRevealPhase = false;
+        let revealedCount = 0;
 
-        // 拖曳變數
+        // 拖曳相關變數
         let activeCard = null;
-        let startX = 0, startY = 0;
-        let initialLeft = 0, initialTop = 0;
         let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let startPos = { x: 0, y: 0 }; // 記錄起始位置，用於判斷是否為點擊
 
         // 初始化
         window.onload = initGame;
 
         function initGame() {
-            // 清除舊牌
-            cards.forEach(c => c.remove());
+            // 重置所有狀態
+            document.body.querySelectorAll('.card').forEach(c => c.remove());
             cards = [];
             slotState = [null, null, null, null, null];
+            isRevealPhase = false;
+            revealedCount = 0;
+
             document.getElementById('result-overlay').style.display = 'none';
-            updateButtonState();
+            document.getElementById('status-bar').style.opacity = '0';
+            
+            const btn = document.getElementById('confirm-btn');
+            btn.innerText = "請選滿五張";
+            btn.disabled = true;
+            btn.classList.remove('ready');
 
             // 產生 52 張牌
             let deckData = createDeckData();
             const tableZone = document.querySelector('.table-zone');
             const tableRect = tableZone.getBoundingClientRect();
 
-            // 直接將牌加到 body，確保可以自由拖動到全螢幕任何角落
             deckData.forEach((data, i) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.id = `card-${i}`;
                 
-                // 存入數據
+                // 數據
                 card.dataset.suit = data.suit;
                 card.dataset.rank = data.rank;
                 card.dataset.value = data.value;
-                card.dataset.slotIndex = "-1"; // -1 代表沒在格子裡
+                card.dataset.slotIndex = "-1"; // -1 = 在桌面
 
-                // 隨機分佈在下方桌面區
-                // 為了避免太靠邊，加一點 padding
-                const maxLeft = window.innerWidth - 60;
-                const minTop = tableRect.top + 20;
-                const maxTop = window.innerHeight - 90;
+                // 隨機分佈在桌面區 (table-zone)
+                // 必須計算相對 body 的座標
+                const margin = 20;
+                const minX = margin;
+                const maxX = window.innerWidth - 60 - margin;
+                const minY = tableRect.top + margin;
+                const maxY = window.innerHeight - 90 - margin;
 
-                const rLeft = Math.random() * maxLeft;
-                const rTop = minTop + Math.random() * (maxTop - minTop);
-                const rRot = Math.random() * 60 - 30; // -30 ~ 30度
+                const rLeft = minX + Math.random() * (maxX - minX);
+                const rTop = minY + Math.random() * (maxY - minY);
+                const rRot = Math.random() * 90 - 45;
 
                 card.style.left = `${rLeft}px`;
                 card.style.top = `${rTop}px`;
                 card.style.transform = `rotate(${rRot}deg)`;
 
-                // 綁定拖曳事件 (Mouse & Touch)
-                addDragEvents(card);
+                // 綁定事件
+                bindCardEvents(card);
 
                 document.body.appendChild(card);
                 cards.push(card);
             });
+
+            // 綁定桌布搓牌事件
+            bindTableEvents();
         }
 
         function createDeckData() {
@@ -309,71 +387,72 @@
             return d;
         }
 
-        // --- 核心：拖曳邏輯 ---
-        function addDragEvents(el) {
+        // --- 互動邏輯 1: 卡牌拖曳 (Drag) & 翻牌點擊 ---
+        function bindCardEvents(card) {
             // 觸控
-            el.addEventListener('touchstart', dragStart, {passive: false});
-            el.addEventListener('touchmove', dragMove, {passive: false});
-            el.addEventListener('touchend', dragEnd);
+            card.addEventListener('touchstart', onDragStart, {passive: false});
+            card.addEventListener('touchmove', onDragMove, {passive: false});
+            card.addEventListener('touchend', onDragEnd);
             // 滑鼠
-            el.addEventListener('mousedown', dragStart);
-            document.addEventListener('mousemove', dragMove); // 綁在 doc 上防滑出
-            document.addEventListener('mouseup', dragEnd);
+            card.addEventListener('mousedown', onDragStart);
         }
 
-        function dragStart(e) {
-            // 如果是滑鼠事件，但目標不是卡牌（或卡牌已被鎖定），忽略
-            if (e.type === 'mousedown' && e.target !== this) return;
-            if (this.classList.contains('locked')) return; // 開牌後不能動
+        function onDragStart(e) {
+            if (isRevealPhase) {
+                // 如果是翻牌階段，點擊卡牌觸發翻牌邏輯，不拖曳
+                handleRevealClick(this);
+                return;
+            }
 
-            e.preventDefault();
-            activeCard = this;
-            isDragging = true;
-
-            // 提升層級，確保在最上面
-            activeCard.style.zIndex = 1000;
-            activeCard.style.transition = 'none'; // 拖動時不需要動畫
-
-            // 記錄初始位置
-            const touch = e.type === 'touchstart' ? e.touches[0] : e;
-            startX = touch.clientX;
-            startY = touch.clientY;
-            initialLeft = parseFloat(activeCard.style.left);
-            initialTop = parseFloat(activeCard.style.top);
-
-            // 縮小旋轉角度，讓拖動時比較正
-            activeCard.style.transform = 'scale(1.1) rotate(0deg)';
+            e.preventDefault(); // 防止滾動
             
-            // 如果這張牌原本在格子裡，先清空該格狀態
-            const oldSlotIdx = parseInt(activeCard.dataset.slotIndex);
-            if (oldSlotIdx !== -1) {
-                slotState[oldSlotIdx] = null;
-                activeCard.dataset.slotIndex = "-1";
+            // 如果已經在格子裡，先暫時視為移出，方便重排
+            const currentSlot = parseInt(this.dataset.slotIndex);
+            if (currentSlot !== -1) {
+                slotState[currentSlot] = null;
+                this.dataset.slotIndex = "-1";
                 updateButtonState();
             }
+
+            activeCard = this;
+            isDragging = true;
+            activeCard.classList.add('dragging');
+
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = activeCard.getBoundingClientRect();
+            
+            // 計算點擊點與卡片左上角的偏移
+            dragOffset.x = touch.clientX - rect.left;
+            dragOffset.y = touch.clientY - rect.top;
+
+            // 記錄起始點，如果移動很小，視為誤觸
+            startPos = { x: touch.clientX, y: touch.clientY };
         }
 
-        function dragMove(e) {
+        function onDragMove(e) {
             if (!isDragging || !activeCard) return;
             e.preventDefault();
 
-            const touch = e.type === 'touchmove' ? e.touches[0] : e;
-            const dx = touch.clientX - startX;
-            const dy = touch.clientY - startY;
+            const touch = e.touches ? e.touches[0] : e;
+            const x = touch.clientX - dragOffset.x;
+            const y = touch.clientY - dragOffset.y;
 
-            activeCard.style.left = `${initialLeft + dx}px`;
-            activeCard.style.top = `${initialTop + dy}px`;
+            activeCard.style.left = `${x}px`;
+            activeCard.style.top = `${y}px`;
+            activeCard.style.transform = `rotate(0deg) scale(1.15)`; // 拖曳時擺正並放大
+
+            // --- 額外功能：拖曳時碰撞其他牌 (Collision Scatter) ---
+            // 這是為了增加手感，當你拖著一張牌經過其他牌，其他牌會讓路
+            scatterNearbyCards(x + 30, y + 45, activeCard);
         }
 
-        function dragEnd(e) {
+        function onDragEnd(e) {
             if (!isDragging || !activeCard) return;
+            
             isDragging = false;
+            activeCard.classList.remove('dragging');
 
-            activeCard.style.transition = 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
-            activeCard.style.zIndex = 100; // 還原層級
-            activeCard.style.transform = `scale(1) rotate(${Math.random()*10-5}deg)`; // 輕微隨機旋轉
-
-            // 檢查是否放進格子
+            // 檢查是否放入格子
             checkDrop(activeCard);
             
             activeCard = null;
@@ -384,134 +463,251 @@
             const cardCenterX = cardRect.left + cardRect.width / 2;
             const cardCenterY = cardRect.top + cardRect.height / 2;
 
-            let droppedInSlot = false;
+            let dropped = false;
 
-            // 遍歷 5 個格子
+            // 檢查 5 個格子
             for (let i = 0; i < 5; i++) {
                 const slot = document.getElementById(`slot-${i}`);
                 const slotRect = slot.getBoundingClientRect();
 
-                // 簡單的碰撞檢測：如果卡片中心點在格子內
-                if (cardCenterX >= slotRect.left && cardCenterX <= slotRect.right &&
-                    cardCenterY >= slotRect.top && cardCenterY <= slotRect.bottom) {
+                // 簡單碰撞判定
+                if (cardCenterX > slotRect.left && cardCenterX < slotRect.right &&
+                    cardCenterY > slotRect.top && cardCenterY < slotRect.bottom) {
                     
-                    // 該格是否已有牌？
                     if (slotState[i] === null) {
-                        // 1. 吸附進去
                         snapToSlot(card, slotRect, i);
-                        droppedInSlot = true;
+                        dropped = true;
                     } else {
-                        // 格子有牌，擠掉它？還是彈回？這裡選擇彈回桌面比較簡單
-                        // 或者做交換（稍微複雜），這裡先做彈回
+                        // 格子有牌，彈回桌面 (或者你可以寫交換邏輯)
+                        // 這裡選擇簡單彈回
                     }
                     break;
                 }
             }
 
-            if (!droppedInSlot) {
-                // 如果沒進格子，也沒在桌面區，檢查是否要歸位？
-                // 這裡簡單處理：如果還在螢幕範圍內就停在原地
-                // 但為了體驗好，如果卡牌太靠近上方但沒進格，或是超出邊界，彈回桌面區
-                const tableZone = document.querySelector('.table-zone');
-                const tableRect = tableZone.getBoundingClientRect();
-                
-                // 如果放開的位置不在桌面區，也不在格子裡 -> 彈回隨機桌面位置
-                if (cardCenterY < tableRect.top) {
-                     returnToTable(card);
-                }
+            if (!dropped) {
+                // 如果沒進格子，彈回桌面隨機位置
+                returnToTable(card);
             }
         }
 
         function snapToSlot(card, slotRect, index) {
-            // 計算中心對齊的 left/top
-            // slotRect 是相對於視窗的，card 是 absolute left/top (相對於 body)
-            // 因為 body 是全螢幕，所以直接用 slotRect 的座標
+            // 計算吸附位置 (置中)
+            // 因為 card 是 absolute by body，直接用 slotRect
             const newLeft = slotRect.left + (slotRect.width - parseFloat(getComputedStyle(card).width)) / 2;
             const newTop = slotRect.top + (slotRect.height - parseFloat(getComputedStyle(card).height)) / 2;
 
+            card.style.transition = 'all 0.2s ease-out';
             card.style.left = `${newLeft}px`;
             card.style.top = `${newTop}px`;
-            card.style.transform = 'rotate(0deg)'; // 進格子要擺正
+            card.style.transform = 'rotate(0deg)';
 
-            // 記錄狀態
             slotState[index] = card;
             card.dataset.slotIndex = index;
-            
+
+            // 動畫結束後移除 transition 以免影響拖曳
+            setTimeout(() => { card.style.transition = ''; }, 200);
+
             updateButtonState();
         }
 
         function returnToTable(card) {
-             const tableZone = document.querySelector('.table-zone');
-             const tableRect = tableZone.getBoundingClientRect();
-             
-             const maxLeft = window.innerWidth - 60;
-             const minTop = tableRect.top + 20;
-             const maxTop = window.innerHeight - 90;
+            const tableZone = document.querySelector('.table-zone');
+            const tableRect = tableZone.getBoundingClientRect();
+            
+            const minX = 20;
+            const maxX = window.innerWidth - 80;
+            const minY = tableRect.top + 20;
+            const maxY = window.innerHeight - 100;
 
-             const rLeft = Math.random() * maxLeft;
-             const rTop = minTop + Math.random() * (maxTop - minTop);
-             
-             card.style.left = `${rLeft}px`;
-             card.style.top = `${rTop}px`;
-             card.dataset.slotIndex = "-1";
+            const rLeft = minX + Math.random() * (maxX - minX);
+            const rTop = minY + Math.random() * (maxY - minY);
+            const rRot = Math.random() * 60 - 30;
+
+            card.style.transition = 'all 0.4s ease-out';
+            card.style.left = `${rLeft}px`;
+            card.style.top = `${rTop}px`;
+            card.style.transform = `rotate(${rRot}deg)`;
+            
+            card.dataset.slotIndex = "-1";
+
+            setTimeout(() => { card.style.transition = ''; }, 400);
+        }
+
+        // --- 互動邏輯 2: 桌面搓牌 (Washing) ---
+        function bindTableEvents() {
+            const table = document.getElementById('table-bg');
+            
+            // 監聽桌布上的觸控移動
+            table.addEventListener('touchmove', (e) => {
+                // 如果正在拖曳卡片，就不觸發洗牌，避免衝突
+                if (isDragging) return;
+                
+                // 阻止默認滾動
+                // e.preventDefault(); 
+                
+                const touch = e.touches[0];
+                scatterNearbyCards(touch.clientX, touch.clientY, null);
+            }, {passive: false});
+
+             table.addEventListener('mousemove', (e) => {
+                if (isDragging) return;
+                if (e.buttons > 0) { // 只有按下滑鼠時才撥牌
+                    scatterNearbyCards(e.clientX, e.clientY, null);
+                }
+            });
+        }
+
+        // 撥開卡片的物理邏輯
+        function scatterNearbyCards(x, y, ignoreCard) {
+            const radius = 90; // 影響範圍
+            const force = 15; // 推力
+
+            cards.forEach(card => {
+                if (card === ignoreCard) return; // 不推自己
+                if (card.dataset.slotIndex !== "-1") return; // 不推格子裡的牌
+
+                const rect = card.getBoundingClientRect();
+                const cardCx = rect.left + rect.width/2;
+                const cardCy = rect.top + rect.height/2;
+
+                const dx = cardCx - x;
+                const dy = cardCy - y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+
+                if (dist < radius) {
+                    // 計算推開方向
+                    const angle = Math.atan2(dy, dx);
+                    const pushX = Math.cos(angle) * force;
+                    const pushY = Math.sin(angle) * force;
+
+                    let newLeft = parseFloat(card.style.left) + pushX;
+                    let newTop = parseFloat(card.style.top) + pushY;
+
+                    // 邊界檢查 (不讓牌跑出畫面)
+                    const tableRect = document.querySelector('.table-zone').getBoundingClientRect();
+                    newLeft = Math.max(10, Math.min(window.innerWidth - 70, newLeft));
+                    newTop = Math.max(tableRect.top, Math.min(window.innerHeight - 100, newTop));
+
+                    card.style.left = `${newLeft}px`;
+                    card.style.top = `${newTop}px`;
+                    
+                    // 隨機微轉
+                    let currentRot = parseFloat(card.style.transform.replace(/[^0-9\-.]/g, '')) || 0;
+                    card.style.transform = `rotate(${currentRot + (Math.random()*6-3)}deg)`;
+                }
+            });
         }
 
         function updateButtonState() {
-            // 檢查是否 5 格都有牌
             const isFull = !slotState.includes(null);
             const btn = document.getElementById('confirm-btn');
             
             if (isFull) {
-                btn.classList.add('active');
-                btn.innerText = "確認開牌";
+                btn.disabled = false;
+                btn.innerText = "買定離手";
+                btn.classList.add('ready');
             } else {
-                btn.classList.remove('active');
+                btn.disabled = true;
                 btn.innerText = "請選滿五張";
+                btn.classList.remove('ready');
             }
         }
 
-        // --- 開牌邏輯 ---
-        function revealResult() {
-            if (slotState.includes(null)) return; // 防呆
+        // --- 階段切換: 準備翻牌 ---
+        function startRevealPhase() {
+            if (slotState.includes(null)) return;
 
-            // 鎖定所有卡牌不能動
-            cards.forEach(c => c.classList.add('locked'));
-            document.getElementById('confirm-btn').classList.remove('active');
+            isRevealPhase = true;
             
-            let totalAmountStr = "";
+            // UI 更新
+            const btn = document.getElementById('confirm-btn');
+            btn.innerText = "翻牌中...";
+            btn.classList.remove('ready');
+            btn.disabled = true;
 
-            // 依序翻牌
-            slotState.forEach((card, i) => {
-                setTimeout(() => {
-                    // 視覺翻轉
-                    card.classList.add('revealed');
-                    const isRed = (card.dataset.suit === '♥' || card.dataset.suit === '♦');
-                    card.classList.add(isRed ? 'red' : 'black');
-                    
-                    // 顯示內容
-                    card.innerHTML = `
-                        <div class="suit-small">${card.dataset.suit}</div>
-                        <div class="val-large">${card.dataset.rank}</div>
-                    `;
-                    
-                    totalAmountStr += card.dataset.value;
+            document.getElementById('status-bar').style.opacity = '1';
 
-                    // 最後一張翻完
-                    if (i === 4) {
-                        showFinalScore(parseInt(totalAmountStr));
-                    }
-                }, i * 300);
+            // 鎖定格子裡的牌，變更樣式提示可點擊
+            slotState.forEach(card => {
+                card.classList.add('locked');
+            });
+
+            // 為了避免擋住，把桌面其他的牌變暗或往下移 (這裡選擇變半透明)
+            cards.forEach(c => {
+                if (c.dataset.slotIndex === "-1") {
+                    c.style.opacity = '0.3';
+                    c.style.pointerEvents = 'none'; // 桌面牌不能再動
+                }
             });
         }
 
-        function showFinalScore(amount) {
-            setTimeout(() => {
-                const overlay = document.getElementById('result-overlay');
-                overlay.style.display = 'flex';
-                const scoreEl = document.getElementById('final-score');
-                scoreEl.innerText = `$${amount.toLocaleString()}`;
-            }, 500);
+        // --- 互動邏輯 3: 手動點擊翻牌 ---
+        function handleRevealClick(card) {
+            // 必須是翻牌階段
+            if (!isRevealPhase) return;
+            // 必須是還沒翻開的牌
+            if (card.classList.contains('revealed')) return;
+            // 必須是格子裡的牌
+            if (card.dataset.slotIndex === "-1") return;
+
+            // 執行翻牌
+            revealOneCard(card);
         }
+
+        function revealOneCard(card) {
+            // 移除鎖定，標記為已翻
+            card.classList.remove('locked');
+            card.classList.add('done');
+            card.classList.add('flipping'); // 觸發 CSS 動畫
+
+            // 0.3秒後 (動畫一半) 改變內容
+            setTimeout(() => {
+                card.classList.add('revealed');
+                const isRed = (card.dataset.suit === '♥' || card.dataset.suit === '♦');
+                card.classList.add(isRed ? 'red' : 'black');
+                
+                card.innerHTML = `
+                    <div class="suit-small">${card.dataset.suit}</div>
+                    <div class="val-large">${card.dataset.rank}</div>
+                `;
+            }, 300);
+
+            revealedCount++;
+
+            // 檢查是否全部翻完
+            if (revealedCount === 5) {
+                setTimeout(calculateAndShowResult, 1000);
+            }
+        }
+
+        function calculateAndShowResult() {
+            let totalAmountStr = "";
+            slotState.forEach(card => {
+                totalAmountStr += card.dataset.value;
+            });
+            
+            const finalAmount = parseInt(totalAmountStr);
+
+            document.getElementById('result-overlay').style.display = 'flex';
+            const scoreEl = document.getElementById('final-score');
+            
+            // 數字跳動特效
+            let current = 0;
+            const step = Math.max(1, Math.floor(finalAmount / 30));
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= finalAmount) {
+                    current = finalAmount;
+                    clearInterval(timer);
+                }
+                scoreEl.innerText = `$${current.toLocaleString()}`;
+            }, 30);
+        }
+
+        // 將拖曳與滑鼠事件掛載到 document，以防拖太快出界
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
 
     </script>
 </body>
